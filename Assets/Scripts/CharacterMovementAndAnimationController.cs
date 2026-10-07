@@ -1,5 +1,3 @@
-using System;
-using UnityEditor.Rendering.LookDev;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -18,7 +16,8 @@ public class CharacterMovementAndAnimationController : MonoBehaviour
         animator = GetComponent<Animator>();
         characterController = GetComponent<CharacterController>();
         playerInput = new PlayerInput();
-        playerInput.CharacterControls.Move.started += ReadMovementInput;
+        //playerInput.CharacterControls.Move.started += ReadMovementInput;
+        playerInput.CharacterControls.Move.performed += ReadMovementInput;
         playerInput.CharacterControls.Move.canceled += ReadMovementInput;
     }
     void ReadMovementInput(InputAction.CallbackContext context)
@@ -32,7 +31,21 @@ public class CharacterMovementAndAnimationController : MonoBehaviour
     {
         HandleAniamtion();
         HandleRotation();
+        HandleGravity();
         characterController.Move(currentMovement * Time.deltaTime);
+    }
+    private void HandleGravity()
+    {
+        if (characterController.isGrounded)
+        {
+            float gravity = -2.0f;
+            currentMovement.y = gravity;
+        }
+        else
+        {
+            float gravity = -9.8f;
+            currentMovement.y = gravity; 
+        }
     }
     private void HandleRotation()
     {
