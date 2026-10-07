@@ -1,50 +1,121 @@
+using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class CharacterMovementAndAnimationController : MonoBehaviour
 {
+    //reference variables
     PlayerInput playerInput;
     CharacterController characterController;
     Animator animator;
+
+    //variables to store player input
     Vector2 currentMovementInput;
     Vector3 currentMovement;
     bool isMovementPressed;
+    bool isJumpPressed = false;
+
+    //value types
     [SerializeField] float rotationFactorPerFrame = 15.0f;
     [SerializeField] float speed = 2.0f;
+
+    //gravity
+    float gravity = -9.8f;
+    float groundedGravity = -2.0f;
+    [SerializeField] float fallMultiplier = 2.0f;
+
+    //JUmping Varaibles
+    [SerializeField] float initialJumpVelocity;
+    [SerializeField] float maxJumpHeight = 1.0f;
+    [SerializeField] float maxJumpTime = 0.5f;
+    bool isJumping = false;
+    bool isJumpingAnimating = false;
     void Awake()
     {
+        //initializing refernece variables
         animator = GetComponent<Animator>();
         characterController = GetComponent<CharacterController>();
         playerInput = new PlayerInput();
-        //playerInput.CharacterControls.Move.started += ReadMovementInput;
-        playerInput.CharacterControls.Move.performed += ReadMovementInput;
+        //player input callback function
+        //performed for diagonal movement
+        playerInput.CharacterControls.Move.performed += ReadMovementInput; 
         playerInput.CharacterControls.Move.canceled += ReadMovementInput;
+        playerInput.CharacterControls.Jump.started += OnJump;
+        playerInput.CharacterControls.Jump.canceled += OnJump;
+
+        InitializeJumpParameters();
+    }
+
+    void OnJump(InputAction.CallbackContext context)
+    {
+        isJumpPressed = context.ReadValueAsButton();
+        Debug.Log(isJumpPressed);
     }
     void ReadMovementInput(InputAction.CallbackContext context)
     {
         currentMovementInput = context.ReadValue<Vector2>();
+        Debug.Log(currentMovementInput);
         currentMovement.x = currentMovementInput.x * speed;
         currentMovement.z = currentMovementInput.y * speed;
         isMovementPressed = currentMovementInput.x != 0 || currentMovementInput.y != 0;
     }
     void Update()
     {
+        MovePlayer();
+        HandleJump();
+    }
+    private void InitializeJumpParameters()
+    {
+        float timeToApex = maxJumpHeight / 2;
+        gravity = (-2 * maxJumpHeight) / Mathf.Pow(timeToApex, 2);
+        initialJumpVelocity = (2 * maxJumpHeight) / timeToApex;
+    }
+    private void HandleJump()
+    {
+        if(!isJumping && characterController.isGrounded && isJumpPressed)
+        {
+            isJumping = true;
+            animator.SetBool("IsJumping", true);
+            isJumpingAnimating = true;
+            currentMovement.y = initialJumpVelocity;
+        }
+        else if (isJumping && !isJumpPressed && characterController.isGrounded)
+        {
+            isJumping = false;
+        }
+    }
+    private void MovePlayer()
+    {
         HandleAniamtion();
         HandleRotation();
-        HandleGravity();
         characterController.Move(currentMovement * Time.deltaTime);
+        HandleGravity();
     }
+
     private void HandleGravity()
     {
+        bool isFalling = currentMovement.y <= 0.0d || !isJumpPressed;
         if (characterController.isGrounded)
         {
-            float gravity = -2.0f;
-            currentMovement.y = gravity;
+            currentMovement.y = groundedGravity;
+            if (isJumpingAnimating)
+            {
+                animator.SetBool("IsJumping", false);
+            }
+        }
+        else if (isFalling)
+        {
+            float previousYVelocity = currentMovement.y;
+            float newYVelocity = previousYVelocity + (gravity * fallMultiplier * Time.deltaTime);
+            float nextYVelocity = (previousYVelocity + newYVelocity) * 0.5f;
+            currentMovement.y = nextYVelocity; 
         }
         else
         {
-            float gravity = -9.8f;
-            currentMovement.y = gravity; 
+            float previousYVelocity = currentMovement.y;
+            float newYVelocity = previousYVelocity + (gravity * Time.deltaTime);
+            float nextYVelocity = (previousYVelocity + newYVelocity) * 0.5f;
+            currentMovement.y = nextYVelocity; 
         }
     }
     private void HandleRotation()
@@ -62,7 +133,6 @@ public class CharacterMovementAndAnimationController : MonoBehaviour
         }
         
     }
-
     private void HandleAniamtion()
     {
         if (isMovementPressed)
