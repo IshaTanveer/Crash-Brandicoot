@@ -14,6 +14,7 @@ public class CharacterMovementAndAnimationController : MonoBehaviour
     Vector3 currentMovement;
     bool isMovementPressed;
     bool isJumpPressed = false;
+    bool isSpinPressed = false;
 
     //value types
     [SerializeField] float rotationFactorPerFrame = 15.0f;
@@ -30,6 +31,10 @@ public class CharacterMovementAndAnimationController : MonoBehaviour
     [SerializeField] float maxJumpTime = 0.5f;
     bool isJumping = false;
     bool isJumpingAnimating = false;
+
+    [SerializeField] float spinSteps = 4.0f;
+    [SerializeField] float totalAngle = 1440.0f;
+    bool isSpining = false;
     void Awake()
     {
         //initializing refernece variables
@@ -42,14 +47,18 @@ public class CharacterMovementAndAnimationController : MonoBehaviour
         playerInput.CharacterControls.Move.canceled += ReadMovementInput;
         playerInput.CharacterControls.Jump.started += OnJump;
         playerInput.CharacterControls.Jump.canceled += OnJump;
+        playerInput.CharacterControls.Spin.started += OnSpin;
+        playerInput.CharacterControls.Spin.canceled += OnSpin;
 
         InitializeJumpParameters();
     }
-
+    void OnSpin(InputAction.CallbackContext context)
+    {
+        isSpinPressed = context.ReadValueAsButton();
+    }
     void OnJump(InputAction.CallbackContext context)
     {
         isJumpPressed = context.ReadValueAsButton();
-        Debug.Log(isJumpPressed);
     }
     void ReadMovementInput(InputAction.CallbackContext context)
     {
@@ -63,6 +72,20 @@ public class CharacterMovementAndAnimationController : MonoBehaviour
     {
         MovePlayer();
         HandleJump();
+        HandleSpin();
+    }
+
+    private void HandleSpin()
+    {
+        if (isSpinPressed && !isSpining)
+        {
+            animator.SetTrigger("Spin");
+            isSpining = true;
+        }
+        else if (!isSpinPressed && isSpining)
+        {
+            isSpining = false;
+        }
     }
     private void InitializeJumpParameters()
     {
@@ -103,14 +126,14 @@ public class CharacterMovementAndAnimationController : MonoBehaviour
                 animator.SetBool("IsJumping", false);
             }
         }
-        else if (isFalling)
+        else if (isFalling) //increasing velocity when player is fallling
         {
             float previousYVelocity = currentMovement.y;
             float newYVelocity = previousYVelocity + (gravity * fallMultiplier * Time.deltaTime);
             float nextYVelocity = (previousYVelocity + newYVelocity) * 0.5f;
             currentMovement.y = nextYVelocity; 
         }
-        else
+        else //use Velocity verlet integration instead of euler integeration
         {
             float previousYVelocity = currentMovement.y;
             float newYVelocity = previousYVelocity + (gravity * Time.deltaTime);
@@ -131,7 +154,6 @@ public class CharacterMovementAndAnimationController : MonoBehaviour
             Quaternion targetRotation = Quaternion.LookRotation(positionToLookAt);
             transform.rotation = Quaternion.Slerp(currentRotation, targetRotation, rotationFactorPerFrame * Time.deltaTime);
         }
-        
     }
     private void HandleAniamtion()
     {
