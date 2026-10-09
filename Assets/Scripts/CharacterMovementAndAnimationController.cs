@@ -31,9 +31,6 @@ public class CharacterMovementAndAnimationController : MonoBehaviour
     [SerializeField] float maxJumpTime = 0.5f;
     bool isJumping = false;
     bool isJumpingAnimating = false;
-
-    [SerializeField] float spinSteps = 4.0f;
-    [SerializeField] float totalAngle = 1440.0f;
     bool isSpining = false;
     void Awake()
     {
@@ -63,7 +60,7 @@ public class CharacterMovementAndAnimationController : MonoBehaviour
     void ReadMovementInput(InputAction.CallbackContext context)
     {
         currentMovementInput = context.ReadValue<Vector2>();
-        Debug.Log(currentMovementInput);
+        //Debug.Log(currentMovementInput);
         currentMovement.x = currentMovementInput.x * speed;
         currentMovement.z = currentMovementInput.y * speed;
         isMovementPressed = currentMovementInput.x != 0 || currentMovementInput.y != 0;
@@ -86,6 +83,10 @@ public class CharacterMovementAndAnimationController : MonoBehaviour
         {
             isSpining = false;
         }
+    }
+    public bool GetIsSpining()
+    {
+        return isSpining;
     }
     private void InitializeJumpParameters()
     {
