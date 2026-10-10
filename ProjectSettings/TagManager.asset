@@ -7,6 +7,16 @@ TagManager:
   - Wumpa
   - Head
   - Crate
+  - Enemy
+  - CollectibleCrate
+  - Checkpoint
+  - CheckpointCrate
+  - WumpaCrate
+  - SpecialWumpaCrate
+  - SimpleWumpaCrate
+  - AkuAkuCrate
+  - UselessCrate
+  - LifeCrate
   layers:
   - Default
   - TransparentFX
