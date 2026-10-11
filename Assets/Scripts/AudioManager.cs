@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class AudioManager : MonoBehaviour
 {
-     public enum Sound {BreakCrate, Collect, BGM, Death, Spin};
+     public enum Sound {BreakCrate, CollectLives, CollectWumpa, Spin, Death, FellInPit, BGM};
     [SerializeField] private AudioClip[] audioClips;
     [SerializeField] private AudioSource sfxSource;
     static AudioManager instance;

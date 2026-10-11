@@ -32,9 +32,11 @@ public class CharacterMovementAndAnimationController : MonoBehaviour
     bool isJumping = false;
     bool isJumpingAnimating = false;
     bool isSpining = false;
+    AudioManager audioManager;
     void Awake()
     {
         //initializing refernece variables
+        audioManager = FindFirstObjectByType<AudioManager>();
         animator = GetComponent<Animator>();
         characterController = GetComponent<CharacterController>();
         playerInput = new PlayerInput();
@@ -71,11 +73,16 @@ public class CharacterMovementAndAnimationController : MonoBehaviour
         HandleJump();
         HandleSpin();
     }
+     public void DisableControls()
+    {
+        playerInput.CharacterControls.Disable();
+    }
 
     private void HandleSpin()
     {
         if (isSpinPressed && !isSpining)
         {
+            audioManager.PlaySounds(AudioManager.Sound.Spin);
             animator.SetTrigger("Spin");
             isSpining = true;
         }
@@ -167,6 +174,10 @@ public class CharacterMovementAndAnimationController : MonoBehaviour
             animator.SetBool("IsRunning", false);
         }
     }
+    void OnControllerColliderHit(ControllerColliderHit hit)
+{
+    Debug.Log("Touching: " + hit.collider.name);
+}
 
     void OnEnable()
     {

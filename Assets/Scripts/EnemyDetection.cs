@@ -1,4 +1,5 @@
 using System.Collections;
+using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -12,6 +13,11 @@ public class EnemyDetection : MonoBehaviour
     Collectibles collectibles;
     bool isDead = false;
     static bool diedLastRound = false;
+    ShowBlackout showBlackout;
+    AudioManager audioManager;
+    bool fellIntoPitt = false;
+    CinemachineCamera cam;
+    Animator animator;
     
     void Awake()
     {
@@ -19,7 +25,11 @@ public class EnemyDetection : MonoBehaviour
         rb = GetComponent<Rigidbody>();
         controller = FindFirstObjectByType<CharacterMovementAndAnimationController>();
         characterController = GetComponent<CharacterController>();
+        showBlackout = FindFirstObjectByType<ShowBlackout>();
         collectibles = FindFirstObjectByType<Collectibles>();
+        audioManager = FindFirstObjectByType<AudioManager>();
+        cam = FindFirstObjectByType<CinemachineCamera>();
+        animator = GetComponent<Animator>();
     }
     void Start()
     {
@@ -55,6 +65,13 @@ public class EnemyDetection : MonoBehaviour
                 KillTheEnemy(other.gameObject);
             }
         }
+        else if(other.tag == "Pitt")
+        {
+            cam.Follow = null;
+            if(isDead) return;
+            fellIntoPitt = true;
+            PlayerDeath();
+        }
     }
 
     private void KillTheEnemy(GameObject enemy)
@@ -79,8 +96,18 @@ public class EnemyDetection : MonoBehaviour
 
     IEnumerator Respwan()
     {
-        transform.localScale = new Vector3(0,0,0);
-        //characterController.enabled = false;
+        controller.DisableControls();
+        if (fellIntoPitt)
+        {
+            audioManager.PlaySounds(AudioManager.Sound.FellInPit);
+        }
+        else
+        {
+            //controller.enabled = false;
+            animator.SetTrigger("Death");
+            audioManager.PlaySounds(AudioManager.Sound.Death);
+            showBlackout.ShowTheBlackout();
+        }
         yield return new WaitForSeconds(wait);
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }

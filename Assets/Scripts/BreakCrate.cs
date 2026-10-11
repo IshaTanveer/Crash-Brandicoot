@@ -38,9 +38,6 @@ public class BreakCrate : MonoBehaviour
         if(broken) return;
         if(controller.GetIsSpining() && playerinside)
         {
-            //play aniamtion
-            //play sound
-            //play particles
             broken = true;
             if(this.tag == "SpecialWumpaCrate")
             {
